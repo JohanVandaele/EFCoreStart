@@ -1,6 +1,8 @@
 ﻿global using Microsoft.EntityFrameworkCore;
 
 using Microsoft.Extensions.Configuration;
+using Model.Entities.Configurations;
+using Model.Entities.Seedings;
 
 namespace Model.Entities;
 
@@ -43,119 +45,133 @@ public class EFOpleidingenContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // ------
-        // Docent
-        // ------
-        // [Table("Docenten")]
-        modelBuilder.Entity<Docent>().ToTable("Docenten");
+        // -------------
+        // Configuration
+        // -------------
+        modelBuilder.ApplyConfiguration(new CampusConfiguration());
+        modelBuilder.ApplyConfiguration(new LandConfiguration());
+        modelBuilder.ApplyConfiguration(new DocentConfiguration());
 
-        // [Index(nameof(Voornaam), nameof(Familienaam), Name ="Idx_DocentNaam")]
-        modelBuilder.Entity<Docent>()
-            .HasIndex(b => new { b.Voornaam, b.Familienaam })
-            .HasDatabaseName("Idx_DocentNaam");
+        // -------
+        // Seeding
+        // -------
+        modelBuilder.ApplyConfiguration(new CampusSeeding());
+        modelBuilder.ApplyConfiguration(new DocentSeeding());
+        modelBuilder.ApplyConfiguration(new LandSeeding());
 
-        //// [Index(nameof(CampusId), Name ="Idx_DocentCampus")]
+        //// ------
+        //// Docent
+        //// ------
+        //// [Table("Docenten")]
+        //modelBuilder.Entity<Docent>().ToTable("Docenten");
+
+        //// [Index(nameof(Voornaam), nameof(Familienaam), Name ="Idx_DocentNaam")]
         //modelBuilder.Entity<Docent>()
-        //	.HasIndex(b => b.CampusId)
-        //	.HasDatabaseName("Idx_DocentCampus");
+        //    .HasIndex(b => new { b.Voornaam, b.Familienaam })
+        //    .HasDatabaseName("Idx_DocentNaam");
 
-        //// [Index(nameof(LandCode), Name ="Idx_DocentLand")]
-        //modelBuilder.Entity<Docent>()
-        //	.HasIndex(b => b.LandCode)
-        //	.HasDatabaseName("Idx_DocentLand");
+        ////// [Index(nameof(CampusId), Name ="Idx_DocentCampus")]
+        ////modelBuilder.Entity<Docent>()
+        ////	.HasIndex(b => b.CampusId)
+        ////	.HasDatabaseName("Idx_DocentCampus");
 
-        // [Key]
-        modelBuilder.Entity<Docent>().HasKey(c => c.DocentId);
+        ////// [Index(nameof(LandCode), Name ="Idx_DocentLand")]
+        ////modelBuilder.Entity<Docent>()
+        ////	.HasIndex(b => b.LandCode)
+        ////	.HasDatabaseName("Idx_DocentLand");
 
-        // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        modelBuilder.Entity<Docent>().Property(b => b.DocentId)
-            .ValueGeneratedOnAdd();
+        //// [Key]
+        //modelBuilder.Entity<Docent>().HasKey(c => c.DocentId);
 
-        modelBuilder.Entity<Docent>().Property(b => b.Voornaam)
-            .IsRequired()               // [Required]
-            .HasMaxLength(20);          // [MaxLength(20)]
+        //// [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //modelBuilder.Entity<Docent>().Property(b => b.DocentId)
+        //    .ValueGeneratedOnAdd();
 
-        modelBuilder.Entity<Docent>().Property(b => b.Familienaam)
-            .IsRequired()               // [Required]
-            .HasMaxLength(30);          // [MaxLength(30)]
+        //modelBuilder.Entity<Docent>().Property(b => b.Voornaam)
+        //    .IsRequired()               // [Required]
+        //    .HasMaxLength(20);          // [MaxLength(20)]
 
-        // [Column("Maandwedde", TypeName = "decimal(18,4)")]
-        modelBuilder.Entity<Docent>().Property(b => b.Wedde)
-            .HasColumnName("Maandwedde")
-            .HasColumnType("decimal(18, 4)");
+        //modelBuilder.Entity<Docent>().Property(b => b.Familienaam)
+        //    .IsRequired()               // [Required]
+        //    .HasMaxLength(30);          // [MaxLength(30)]
 
-        modelBuilder.Entity<Docent>().Property(b => b.InDienst)
-            .HasColumnType("date");   // [Column(TypeName = "date")]
+        //// [Column("Maandwedde", TypeName = "decimal(18,4)")]
+        //modelBuilder.Entity<Docent>().Property(b => b.Wedde)
+        //    .HasColumnName("Maandwedde")
+        //    .HasColumnType("decimal(18, 4)");
 
-        //modelBuilder.Entity<Docent>()
-        //	.HasOne(b => b.Campus)
-        //	.WithMany(c => c.Docenten)
-        //	.HasForeignKey(b => b.CampusId);
+        //modelBuilder.Entity<Docent>().Property(b => b.InDienst)
+        //    .HasColumnType("date");   // [Column(TypeName = "date")]
 
-        //modelBuilder.Entity<Docent>()
-        //	.HasOne(b => b.Land)
-        //	.WithMany(c => c.Docenten)
-        //	.HasForeignKey(b => b.LandCode);
+        ////modelBuilder.Entity<Docent>()
+        ////	.HasOne(b => b.Campus)
+        ////	.WithMany(c => c.Docenten)
+        ////	.HasForeignKey(b => b.CampusId);
 
-        // ------
-        // Campus
-        // ------
-        // [Table("Campussen")]
-        modelBuilder.Entity<Campus>().ToTable("Campussen");
+        ////modelBuilder.Entity<Docent>()
+        ////	.HasOne(b => b.Land)
+        ////	.WithMany(c => c.Docenten)
+        ////	.HasForeignKey(b => b.LandCode);
 
-        // [Index(nameof(Naam), IsUnique = true, Name ="Idx_CampusNaam")]
-        modelBuilder.Entity<Campus>()
-            .HasIndex(b => b.Naam)
-            .HasDatabaseName("Idx_CampusNaam")
-            .IsUnique();
+        //// ------
+        //// Campus
+        //// ------
+        //// [Table("Campussen")]
+        //modelBuilder.Entity<Campus>().ToTable("Campussen");
 
-        // [Key]
-        modelBuilder.Entity<Campus>().HasKey(c => c.CampusId);
+        //// [Index(nameof(Naam), IsUnique = true, Name ="Idx_CampusNaam")]
+        //modelBuilder.Entity<Campus>()
+        //    .HasIndex(b => b.Naam)
+        //    .HasDatabaseName("Idx_CampusNaam")
+        //    .IsUnique();
 
-        // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        modelBuilder.Entity<Campus>().Property(b => b.CampusId)
-            .ValueGeneratedOnAdd();
+        //// [Key]
+        //modelBuilder.Entity<Campus>().HasKey(c => c.CampusId);
 
-        modelBuilder.Entity<Campus>().Property(b => b.Naam)
-            .HasColumnName("CampusNaam")    // [Column("CampusNaam")]
-            .IsRequired();                  // [Required]
+        //// [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        //modelBuilder.Entity<Campus>().Property(b => b.CampusId)
+        //    .ValueGeneratedOnAdd();
 
-        modelBuilder.Entity<Campus>().Property(b => b.Straat)
-            .HasMaxLength(50);              // [StringLength(50)]
+        //modelBuilder.Entity<Campus>().Property(b => b.Naam)
+        //    .HasColumnName("CampusNaam")    // [Column("CampusNaam")]
+        //    .IsRequired();                  // [Required]
 
-        modelBuilder.Entity<Campus>().Property(b => b.Huisnummer)
-            .HasMaxLength(5);               // [StringLength(5)]
+        //modelBuilder.Entity<Campus>().Property(b => b.Straat)
+        //    .HasMaxLength(50);              // [StringLength(50)]
 
-        modelBuilder.Entity<Campus>().Property(b => b.Postcode)
-            .HasMaxLength(4);               // [StringLength(4)]
+        //modelBuilder.Entity<Campus>().Property(b => b.Huisnummer)
+        //    .HasMaxLength(5);               // [StringLength(5)]
 
-        modelBuilder.Entity<Campus>().Property(b => b.Gemeente)
-            .HasMaxLength(50);              // [StringLength(50)]
+        //modelBuilder.Entity<Campus>().Property(b => b.Postcode)
+        //    .HasMaxLength(4);               // [StringLength(4)]
 
-        // [NotMapped]
-        modelBuilder.Entity<Campus>().Ignore(c => c.Commentaar);
+        //modelBuilder.Entity<Campus>().Property(b => b.Gemeente)
+        //    .HasMaxLength(50);              // [StringLength(50)]
 
-        // ----
-        // Land
-        // ----
-        // [Table("Landen")]
-        modelBuilder.Entity<Land>().ToTable("Landen");
+        //// [NotMapped]
+        //modelBuilder.Entity<Campus>().Ignore(c => c.Commentaar);
 
-        // [Index(nameof(Naam), IsUnique = true, Name ="Idx_LandNaam")]
-        modelBuilder.Entity<Land>()
-            .HasIndex(b => b.Naam)
-            .HasDatabaseName("Idx_LandNaam")
-            .IsUnique();
+        //// ----
+        //// Land
+        //// ----
+        //// [Table("Landen")]
+        //modelBuilder.Entity<Land>().ToTable("Landen");
 
-        // [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-        modelBuilder.Entity<Land>().HasKey(c => c.LandCode);
+        //// [Index(nameof(Naam), IsUnique = true, Name ="Idx_LandNaam")]
+        //modelBuilder.Entity<Land>()
+        //    .HasIndex(b => b.Naam)
+        //    .HasDatabaseName("Idx_LandNaam")
+        //    .IsUnique();
 
-        modelBuilder.Entity<Land>().Property(b => b.LandCode)
-            .ValueGeneratedNever()
-            .HasMaxLength(2);
+        //// [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+        //modelBuilder.Entity<Land>().HasKey(c => c.LandCode);
 
-        modelBuilder.Entity<Land>().Property(b => b.Naam)
-            .HasMaxLength(25);          // [StringLength(50)]
+        //modelBuilder.Entity<Land>().Property(b => b.LandCode)
+        //    .ValueGeneratedNever()
+        //    .HasMaxLength(2);
+
+        //modelBuilder.Entity<Land>().Property(b => b.Naam)
+        //    .HasMaxLength(25);          // [StringLength(50)]
 
         base.OnModelCreating(modelBuilder);
     }
