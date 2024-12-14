@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Model.Entities.Campus">
+    <Position X="1" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAABAAAAAAAIhAAAAACAAAAAAAEAAAAACAA=</HashCode>
+      <FileName>Entities\Campus.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Docenten" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="Model.Entities.Docent">
+    <Position X="3.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAoAAgAAAAAAIAABAAAAAAAAAAAAgACAAAAAAE=</HashCode>
+      <FileName>Entities\Docent.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Campus" />
+      <Property Name="Land" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Model.Entities.Land">
+    <Position X="6.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAABAAAAAAAAAgAAAAAAAAAAAA=</HashCode>
+      <FileName>Entities\Land.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Docenten" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="Model.Entities.EFOpleidingenContext">
+    <Position X="9.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAQAAAAAAAAAAAABAgAAAAAAAgCAAAAAAAAA=</HashCode>
+      <FileName>Entities\EFOpleidingenContext.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
