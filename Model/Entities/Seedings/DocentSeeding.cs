@@ -11,7 +11,8 @@ class DocentSeeding : IEntityTypeConfiguration<Docent>
         builder.HasData
         (
             // Toevoegen nieuwe Docent met een anonymous type
-            new { DocentId = 001, Voornaam = "Willy", Familienaam = "Abbeloos", Wedde = 1400m, HeeftRijbewijs = new Nullable<bool>(), InDienst = new DateOnly(jaar, 1, 1), CampusId = 4, LandCode = "BE" },
+            //new { DocentId = 001, Voornaam = "Willy", Familienaam = "Abbeloos", Wedde = 1400m, HeeftRijbewijs = new Nullable<bool>(), InDienst = new DateOnly(jaar, 1, 1), CampusId = 4, LandCode = "BE" },
+            new { DocentId = 001, Voornaam = "Willy", Familienaam = "Abbeloos", Wedde = 1500m, HeeftRijbewijs = new Nullable<bool>(), InDienst = new DateOnly(jaar, 1, 1), CampusId = 4, LandCode = "BE" },
             new { DocentId = 002, Voornaam = "Joseph", Familienaam = "Abelshausen", Wedde = 1800m, HeeftRijbewijs = true, InDienst = new DateOnly(jaar, 1, 2), CampusId = 2, LandCode = "NL" },
             new { DocentId = 003, Voornaam = "Joseph", Familienaam = "Achten", Wedde = 1300m, HeeftRijbewijs = false, InDienst = new DateOnly(jaar, 1, 3), CampusId = 3, LandCode = "DE" },
             new { DocentId = 004, Voornaam = "François", Familienaam = "Adam", Wedde = 1700m, HeeftRijbewijs = new Nullable<bool>(), InDienst = new DateOnly(jaar, 1, 4), CampusId = 4, LandCode = "FR" },

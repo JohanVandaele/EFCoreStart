@@ -11,6 +11,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
         // --------------------------
         var andros = new Campus         // nieuwe Campus (Strongly typed)
         {
+            CampusId = 1,       // Primary Key
             Naam = "Andros",
             Straat = "Somersstraat",
             Huisnummer = "22",
@@ -21,6 +22,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
 
         var delos = new Campus
         {
+            CampusId = 2,
             Naam = "Delos",
             Straat = "Oude Vest",
             Huisnummer = "17",
@@ -31,6 +33,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
 
         var gavdos = new Campus
         {
+            CampusId = 3,
             Naam = "Gavdos",
             Straat = "Europalaan",
             Huisnummer = "37",
@@ -41,6 +44,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
 
         var hydra = new Campus
         {
+            CampusId = 4,
             Naam = "Hydra",
             Straat = "Interleuvenlaan",
             Huisnummer = "2",
@@ -51,6 +55,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
 
         var ikaria = new Campus
         {
+            CampusId = 5,
             Naam = "Ikaria",
             Straat = "Vlamingstraat",
             Huisnummer = "10",
@@ -61,6 +66,7 @@ class CampusSeeding : IEntityTypeConfiguration<Campus>
 
         var oinouses = new Campus
         {
+            CampusId = 6,
             Naam = "Oinouses",
             Straat = "Archimedesstraat",
             Huisnummer = "4",

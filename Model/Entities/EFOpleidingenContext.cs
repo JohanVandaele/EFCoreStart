@@ -1,5 +1,7 @@
 ﻿global using Microsoft.EntityFrameworkCore;
 
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Model.Entities.Configurations;
 using Model.Entities.Seedings;
@@ -13,6 +15,7 @@ public class EFOpleidingenContext : DbContext
     // ------------------
     private static IConfigurationRoot Configuration = null!;
     private const string ConnectionString = "efopleidingen";
+    private static bool TestMode;		// = false;
 
     // -----
     // DbSet
@@ -21,28 +24,50 @@ public class EFOpleidingenContext : DbContext
     public DbSet<Docent> Docenten { get; set; } = null!;
     public DbSet<Land> Landen { get; set; } = null!;
 
+    // ------------
+    // Constructors
+    // ------------
+    public EFOpleidingenContext() { }
+    public EFOpleidingenContext(DbContextOptions<EFOpleidingenContext> options) : base(options) { }
+
     // -------
     // Methods
     // -------
     // OnConfiguring
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Zoek de naam in de connectionStrings section - appsettings.json
-        Configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetParent(AppContext.BaseDirectory)!.FullName)
-            .AddJsonFile("appsettings.json", false)
-            .Build();
+        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information, DbContextLoggerOptions.DefaultWithUtcTime);
 
-        var connectionString = Configuration.GetConnectionString(ConnectionString);
-
-        if (connectionString != null)   // Indien de naam is gevonden
+        if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer(
-                connectionString
-                , options => options.MaxBatchSize(150));
+            // Zoek de naam in de connectionStrings section - appsettings.json
+            Configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetParent(AppContext.BaseDirectory)!.FullName)
+                .AddJsonFile("appsettings.json", false)
+                .Build();
+
+            var connectionString = Configuration.GetConnectionString(ConnectionString);
+
+            if (connectionString != null) // Indien de naam is gevonden
+            {
+                optionsBuilder.UseSqlServer(
+                    connectionString
+                    // Max aantal SQL commands die kunnen doorgestuurd worden naar de database
+                    , options => options.MaxBatchSize(150)) //;
+                    .LogTo(Console.WriteLine
+                        , new[] { DbLoggerCategory.Database.Command.Name }
+                        , LogLevel.Information
+                        , DbContextLoggerOptions.Level | DbContextLoggerOptions.LocalTime)
+                    // Toont de waarden van de parameters bij de logging
+                    .EnableSensitiveDataLogging(true);
+            }
+        }
+        else
+        {
+            TestMode = true;
         }
     }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // -------------
@@ -55,9 +80,12 @@ public class EFOpleidingenContext : DbContext
         // -------
         // Seeding
         // -------
-        modelBuilder.ApplyConfiguration(new CampusSeeding());
-        modelBuilder.ApplyConfiguration(new DocentSeeding());
-        modelBuilder.ApplyConfiguration(new LandSeeding());
+        if (!TestMode)
+        {
+            modelBuilder.ApplyConfiguration(new CampusSeeding());
+            modelBuilder.ApplyConfiguration(new DocentSeeding());
+            modelBuilder.ApplyConfiguration(new LandSeeding());
+        }
 
         //// ------
         //// Docent
