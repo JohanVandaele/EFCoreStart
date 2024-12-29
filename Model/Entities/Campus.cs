@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿//using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Entities;
@@ -8,44 +9,58 @@ namespace Model.Entities;
 //[Table("Campussen", Schema = "Admin")] //using System.ComponentModel.DataAnnotations.Schema;
 public class Campus
 {
-    // -----------
-    // Constructor
-    // -----------
-    //public Campus()
-    //{
-    //    Docenten = new List<Docent>();
-    //}
+	//private readonly ILazyLoader lazyLoader = null!;        // Een private variable voor de ILazyLoader instantieµ
 
-    // ----------
-    // Properties
-    // ----------
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int CampusId { get; set; }
+	//-----------
+	//Constructor
+	//-----------
+	//public Campus()
+	//{
+	//	Docenten = new List<Docent>();
+	//}
 
-    [Required]
-    [Column("CampusNaam")]
-    [StringLength(50)]
-    public required string Naam { get; set; }
+	//public Campus() { }
 
-    [StringLength(50)]
-    public required string Straat { get; set; }
+	//private Campus(ILazyLoader lazyLoader) => this.lazyLoader = lazyLoader;
 
-    [StringLength(5)]
-    public required string Huisnummer { get; set; }
+	// ----------
+	// Properties
+	// ----------
+	[Key]
+	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+	public int CampusId { get; set; }
 
-    [StringLength(4)]
-    public required string Postcode { get; set; }
+	[Required]
+	[Column("CampusNaam")]
+	[StringLength(50)]
+	public required string Naam { get; set; }
 
-    [StringLength(50)]
-    public required string Gemeente { get; set; }
-    
-    [NotMapped]
-    public string Commentaar { get; set; } = null!;
+	[StringLength(50)]
+	public required string Straat { get; set; }
 
-    // ---------------------
-    // Navigation Properties
-    // ---------------------
-    // Een Campus kan meerdere Docenten hebben
-    public required ICollection<Docent> Docenten { get; set; }
+	[StringLength(5)]
+	public required string Huisnummer { get; set; }
+
+	[StringLength(4)]
+	public required string Postcode { get; set; }
+
+	[StringLength(50)]
+	public required string Gemeente { get; set; }
+
+	[NotMapped]
+	public string Commentaar { get; set; } = null!;
+
+	// ---------------------
+	// Navigation Properties
+	// ---------------------
+	//public required ICollection<Docent> Docenten { get; set; }  // Een Campus kan meerdere Docenten hebben
+	public virtual required ICollection<Docent> Docenten { get; set; }  // Een Campus kan meerdere Docenten hebben
+
+	//private ICollection<Docent> docenten = null!;
+
+	//public ICollection<Docent> Docenten
+	//{
+	//	get => lazyLoader.Load(this, ref docenten!)!;
+	//	set => docenten = value;
+	//}
 }

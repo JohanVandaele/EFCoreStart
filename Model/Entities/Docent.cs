@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿//using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Entities;
@@ -9,35 +10,64 @@ namespace Model.Entities;
 //[Index(nameof(LandCode), Name = "Idx_DocentLand")]
 public partial class Docent
 {
-    // ----------
-    // Properties
-    // ----------
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int DocentId { get; set; }
+	//private readonly ILazyLoader lazyLoader = null!;        // Een private variable voor de ILazyLoader instantie
 
-    [Required]
-    [MaxLength(20)]
-    public required string Voornaam { get; set; }
+	// -----------
+	// Constructor
+	// -----------
+	//public Docent() { }
 
-    [Required]
-    [MaxLength(30)]
-    public required string Familienaam { get; set; }
+	//private Docent(ILazyLoader lazyLoader) => this.lazyLoader = lazyLoader;
 
-    [Column("Maandwedde", TypeName = "decimal(18,4)")]
-    public decimal Wedde { get; set; }
+	// ----------
+	// Properties
+	// ----------
+	[Key]
+	[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+	public int DocentId { get; set; }
 
-    [Column(TypeName = "date")]
-    public DateOnly InDienst { get; set; }
+	[Required]
+	[MaxLength(20)]
+	public required string Voornaam { get; set; }
 
-    //public bool HeeftRijbewijs { get; set; }
-    public bool? HeeftRijbewijs { get; set; }
+	[Required]
+	[MaxLength(30)]
+	public required string Familienaam { get; set; }
 
-    //public int CampusId { get; set; }
+	[Column("Maandwedde", TypeName = "decimal(18,4)")]
+	public decimal Wedde { get; set; }
 
-    // ---------------------
-    // Navigation properties
-    // ---------------------
-    public required Campus Campus { get; set; }		// Een Docent heeft één Campus
-    public required Land Land { get; set; }			// Een Docent heeft één Land
+	[Column(TypeName = "date")]
+	public DateOnly InDienst { get; set; }
+
+	//public bool HeeftRijbewijs { get; set; }
+	public bool? HeeftRijbewijs { get; set; }
+
+	//public int CampusId { get; set; }
+
+	// ---------------------
+	// Navigation properties
+	// ---------------------
+	//public required Campus Campus { get; set; }     		// Een Docent heeft één Campus
+	//public required Land Land { get; set; }        		// Een Docent heeft één Land
+	public virtual required Campus Campus { get; set; }     // Een Docent heeft één Campus
+	public virtual required Land Land { get; set; }         // Een Docent heeft één Land
+
+	//// Lazy Loading Campus (DI)
+	//private Campus campus = null!;
+
+	//public Campus Campus
+	//{
+	//	get => lazyLoader.Load(this, ref campus!)!;
+	//	set => campus = value;
+	//}
+
+	//// Lazy Loading Land (DI)
+	//private Land land = null!;
+
+	//public Land Land
+	//{
+	//	get => lazyLoader.Load(this, ref land!)!;
+	//	set => land = value;
+	//}
 }

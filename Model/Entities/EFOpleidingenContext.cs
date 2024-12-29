@@ -58,10 +58,11 @@ public class EFOpleidingenContext : DbContext
                         , new[] { DbLoggerCategory.Database.Command.Name }
                         , LogLevel.Information
                         , DbContextLoggerOptions.Level | DbContextLoggerOptions.LocalTime)
-                    // Toont de waarden van de parameters bij de logging
-                    .EnableSensitiveDataLogging(true);
+						// Toont de waarden van de parameters bij de logging
+						.EnableSensitiveDataLogging(true)//;
+                        .UseLazyLoadingProxies();
             }
-        }
+		}
         else
         {
             TestMode = true;

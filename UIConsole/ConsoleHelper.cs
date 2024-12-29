@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -153,7 +154,7 @@ public static partial class Program
 		// ----
 		// Ansi
 		// ----
-		Ansi.EnableVirtualConsole();    // If needed
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Enable);    // Enable Virtual Terminal for handling Escape Sequences
 
 		ResetConsole();
 	}
@@ -194,17 +195,17 @@ public static partial class Program
 			//_ = DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);	// Disable Resize of window
 		}
 
-        // -------
-        // Console
-        // -------
+		// -------
+		// Console
+		// -------
 #pragma warning disable CA1416 // Validate platform compatibility (Only Windows)
 		Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
 #pragma warning disable CA1416 // Validate platform compatibility (Only Windows)
-        Console.SetBufferSize(Console.LargestWindowWidth, 5000 /*Console.LargestWindowHeight*/);
+		Console.SetBufferSize(Console.LargestWindowWidth, 5000 /*Console.LargestWindowHeight*/);
 		Console.CursorSize = 10;            // Only on Windows
 		Console.SetWindowPosition(0, 0);
 #pragma warning restore CA1416 // Validate platform compatibility (Only Windows)
-        Console.CursorVisible = true;
+		Console.CursorVisible = true;
 		Console.SetCursorPosition(0, 0);
 
 		Console.OutputEncoding = Encoding.Unicode;// UTF8;
@@ -834,7 +835,7 @@ public static partial class Program
 			//}
 
 			// Finish
-			if (input == null) break;	// ???
+			if (input == null) break;   // ???
 
 			input = input.ToUpper();
 
@@ -1427,36 +1428,95 @@ public static partial class Program
 // -------------------------
 // Ansi Console Escape Codes (XTerm)
 // -------------------------
+//@echo off
+
+//setlocal
+//call :setESC
+
+//cls
+//echo %ESC%[101;93m STYLES %ESC%[0m
+//echo ^< ESC ^> [0m %ESC%[0mReset%ESC%[0m
+//echo ^<ESC^>[1m %ESC%[1mBold%ESC%[0m
+//echo ^<ESC^>[4m %ESC%[4mUnderline%ESC%[0m
+//echo ^<ESC^>[7m %ESC%[7mInverse%ESC%[0m
+//echo.
+//echo %ESC%[101;93m NORMAL FOREGROUND COLORS %ESC%[0m
+//echo ^< ESC ^> [30m %ESC%[30mBlack%ESC%[0m (black)
+//echo ^<ESC^>[31m %ESC%[31mRed%ESC%[0m
+//echo ^<ESC^>[32m %ESC%[32mGreen%ESC%[0m
+//echo ^<ESC^>[33m %ESC%[33mYellow%ESC%[0m
+//echo ^<ESC^>[34m %ESC%[34mBlue%ESC%[0m
+//echo ^<ESC^>[35m %ESC%[35mMagenta%ESC%[0m
+//echo ^<ESC^>[36m %ESC%[36mCyan%ESC%[0m
+//echo ^<ESC^>[37m %ESC%[37mWhite%ESC%[0m
+//echo.
+//echo %ESC%[101;93m NORMAL BACKGROUND COLORS %ESC%[0m
+//echo ^< ESC ^> [40m %ESC%[40mBlack%ESC%[0m
+//echo ^<ESC^>[41m %ESC%[41mRed%ESC%[0m
+//echo ^<ESC^>[42m %ESC%[42mGreen%ESC%[0m
+//echo ^<ESC^>[43m %ESC%[43mYellow%ESC%[0m
+//echo ^<ESC^>[44m %ESC%[44mBlue%ESC%[0m
+//echo ^<ESC^>[45m %ESC%[45mMagenta%ESC%[0m
+//echo ^<ESC^>[46m %ESC%[46mCyan%ESC%[0m
+//echo ^<ESC^>[47m %ESC%[47mWhite%ESC%[0m (white)
+//echo.
+//echo %ESC%[101;93m STRONG FOREGROUND COLORS %ESC%[0m
+//echo ^< ESC ^> [90m %ESC%[90mWhite%ESC%[0m
+//echo ^<ESC^>[91m %ESC%[91mRed%ESC%[0m
+//echo ^<ESC^>[92m %ESC%[92mGreen%ESC%[0m
+//echo ^<ESC^>[93m %ESC%[93mYellow%ESC%[0m
+//echo ^<ESC^>[94m %ESC%[94mBlue%ESC%[0m
+//echo ^<ESC^>[95m %ESC%[95mMagenta%ESC%[0m
+//echo ^<ESC^>[96m %ESC%[96mCyan%ESC%[0m
+//echo ^<ESC^>[97m %ESC%[97mWhite%ESC%[0m
+//echo.
+//echo %ESC%[101;93m STRONG BACKGROUND COLORS %ESC%[0m
+//echo ^< ESC ^> [100m %ESC%[100mBlack%ESC%[0m
+//echo ^<ESC^>[101m %ESC%[101mRed%ESC%[0m
+//echo ^<ESC^>[102m %ESC%[102mGreen%ESC%[0m
+//echo ^<ESC^>[103m %ESC%[103mYellow%ESC%[0m
+//echo ^<ESC^>[104m %ESC%[104mBlue%ESC%[0m
+//echo ^<ESC^>[105m %ESC%[105mMagenta%ESC%[0m
+//echo ^<ESC^>[106m %ESC%[106mCyan%ESC%[0m
+//echo ^<ESC^>[107m %ESC%[107mWhite%ESC%[0m
+//echo.
+//echo %ESC%[101;93m COMBINATIONS %ESC%[0m
+//echo ^< ESC ^> [31m                     %ESC%[31mred foreground color%ESC%[0m
+//echo ^<ESC^>[7m                      %ESC%[7minverse foreground ^<-^> background%ESC%[0m
+//echo ^<ESC^>[7;31m                   %ESC%[7;31minverse red foreground color%ESC%[0m
+//echo ^< ESC ^> [7m and nested ^<ESC^>[31m %ESC%[7mbefore %ESC%[31mnested%ESC%[0m
+//echo ^<ESC^>[31m and nested ^<ESC^>[7m %ESC%[31mbefore %ESC%[7mnested%ESC%[0m
+
+//:setESC
+//for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do (
+//  set ESC=%%b
+//  exit /B 0
+//)
+//exit /B 0
+
+public enum CharacterAttributes
+{
+	FOREGROUND_BLUE = 0x0001,
+	FOREGROUND_GREEN = 0x0002,
+	FOREGROUND_RED = 0x0004,
+	FOREGROUND_INTENSITY = 0x0008,
+	BACKGROUND_BLUE = 0x0010,
+	BACKGROUND_GREEN = 0x0020,
+	BACKGROUND_RED = 0x0040,
+	BACKGROUND_INTENSITY = 0x0080,
+	COMMON_LVB_LEADING_BYTE = 0x0100,
+	COMMON_LVB_TRAILING_BYTE = 0x0200,
+	COMMON_LVB_GRID_HORIZONTAL = 0x0400,
+	COMMON_LVB_GRID_LVERTICAL = 0x0800,
+	COMMON_LVB_GRID_RVERTICAL = 0x1000,
+	COMMON_LVB_REVERSE_VIDEO = 0x4000,
+	COMMON_LVB_UNDERSCORE = 0x8000
+}
+
 public static class Ansi
 {
 	// https://en.wikipedia.org/wiki/ANSI_escape_code
 	// https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
-
-	// - - - - - - - - - 
-	// Windows registery
-	// - - - - - - - - - 
-	//reg add HKEY_CURRENT_USER\Console /v VirtualTerminalLevel /t REG_DWORD /d 0x00000001 /f
-	//reg add HKEY_CURRENT_USER\Console /v VirtualTerminalLevel /t REG_DWORD /d 0x00000000 /f
-
-	// ---------------------
-	// Enable Ansi Sequences (if needed)
-	// ---------------------
-	[DllImport("kernel32.dll", SetLastError = true)]
-	private static extern IntPtr GetStdHandle(int nStdHandle);
-
-	[DllImport("kernel32.dll")]
-	private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-
-	[DllImport("kernel32.dll")]
-	private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
-	[DllImport("kernel32.dll")]
-	private static extern uint GetLastError();
-
-	// P/Invoke declarations
-	private const int STD_OUTPUT_HANDLE = -11;
-	private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
-	private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	// C0 - single byte command (7bit control codes, byte range
@@ -1476,18 +1536,18 @@ public static class Ansi
 	// ESC			Escape					\e, \x1B	Start of a sequence.Cancels any other sequence.			✓
 	// DEL	127		177		0x7F	<none>	<none>			Delete character
 
-	public static readonly string NUL = "\x00";
-	public static readonly string BEL = "\a";
-	public static readonly string BS = "\b";
-	public static readonly string HT = "\t";
-	public static readonly string LF = "\n";
-	public static readonly string VT = "\v";
-	public static readonly string FF = "\f";
-	public static readonly string CR = "\r";
-	public static readonly string SO = "\x0E";
-	public static readonly string SI = "\x0F";
-	public static readonly string ESC = "\e"; // \x1b";
-	public static readonly string DEL = "\x7f"; // 
+	public static readonly char NUL = '\x00';
+	public static readonly char BEL = '\a';
+	public static readonly char BS = '\b';
+	public static readonly char HT = '\t';
+	public static readonly char LF = '\n';
+	public static readonly char VT = '\v';
+	public static readonly char FF = '\f';
+	public static readonly char CR = '\r';
+	public static readonly char SO = '\x0E';
+	public static readonly char SI = '\x0F';
+	public static readonly char ESC = '\e'; // \x1b";
+	public static readonly char DEL = '\x7f'; // 
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	// C1 - single byte command (8bit control codes, byte range 
@@ -1504,15 +1564,15 @@ public static class Ansi
 	// PM			Privacy Message					\x9E		Start of a privacy message.							✓
 	// APC			Application Program Command		\x9F		Start of an APC sequence.							✓
 
-	public static readonly string IND = "\x84";
-	public static readonly string NEL = "\x85";
-	public static readonly string HTS = "\x88";
-	public static readonly string DCS = "\x90"; // "\x1bP"
-												//public static readonly string CSI = "\x9B"; // "\x1b["
-	public static readonly string ST = "\x9C";
-	public static readonly string OSC = "\x9D"; // "\x1b]"
-	public static readonly string PM = "\x9E";
-	public static readonly string APC = "\x9F";
+	public static readonly char IND = '\x84';
+	public static readonly char NEL = '\x85';
+	public static readonly char HTS = '\x88';
+	public static readonly char DCS = '\x90'; // "\x1bP"
+											  //public static readonly string CSI = "\x9B"; // "\x1b["
+	public static readonly char ST = '\x9C';
+	public static readonly char OSC = '\x9D'; // "\x1b]"
+	public static readonly char PM = '\x9E';
+	public static readonly char APC = '\x9F';
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	// CSI - Control Sequence Introducer: sequence starting with ESC[(7bit) or CSI(\x9B, 8bit)
@@ -2126,41 +2186,292 @@ public static class Ansi
 	//	return (0, 0);
 	//}
 
-	public static void EnableVirtualConsole()
+	// ---------------------
+	// SetVirtualConsoleMode
+	// ---------------------
+	// Windows registry
+	//reg add HKEY_CURRENT_USER\Console /v VirtualTerminalLevel /t REG_DWORD /d 0x00000001 /f
+	//reg add HKEY_CURRENT_USER\Console /v VirtualTerminalLevel /t REG_DWORD /d 0x00000000 /f
+
+	// Activate support globally by default, persistently, via the registry
+	//      In short: In registry key[HKEY_CURRENT_USER\Console], create or set the VirtualTerminalLevel DWORD value to 1
+	//      From PowerShell, you can do this programmatically as follows:
+	//          Set-ItemProperty HKCU:\Console VirtualTerminalLevel -Type DWORD 1
+	//      From cmd.exe (also works from PowerShell):
+	//          reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+	//      Open a new console window for changes to take effect.
+
+	public enum VirtConsAction { Enable = 0, Disable = 1, Test = 3, Sample = 4 } // For testing purposes
+
+	[DllImport("kernel32.dll", SetLastError = true)]
+	private static extern IntPtr GetStdHandle(int nStdHandle);
+
+	[DllImport("kernel32.dll")]
+	private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+	[DllImport("kernel32.dll")]
+	private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+	//[DllImport("kernel32.dll")]
+	//private static extern uint GetLastError();
+
+	[DllImport("kernel32.dll", SetLastError = true)]
+	public static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, int wAttributes);
+
+	public static void SetVirtualConsoleMode(VirtConsAction action)
 	{
 		// ---------------------
 		// Enable Ansi Sequences (if needed)
 		// ---------------------
-		// Get the handle to the standard output stream
-		var stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		const int STD_INPUT_HANDLE = -10;   // The standard input device. Initially, this is the console input buffer, CONIN$.
+		const int STD_OUTPUT_HANDLE = -11;  // The standard output device. Initially, this is the active console screen buffer, CONOUT$.
+		const int STD_ERROR_HANDLE = -12;   // The standard error device. Initially, this is the active console screen buffer, CONOUT$.
+
+		const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+		//const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+		const uint ENABLE_PROCESSED_OUTPUT = 0x0001;
+
+		var testString = $"{Ansi.ESC}[31;1mRed{Ansi.ESC}[0m {Ansi.ESC}[32;1mGreen{Ansi.ESC}[0m {Ansi.ESC}[34;1mBlue{Ansi.ESC}[0m";
+
+		// Get the handles to the standard I/O stream
+		var hInput = GetStdHandle(STD_INPUT_HANDLE);
+		var hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+		var hError = GetStdHandle(STD_ERROR_HANDLE);
 
 		// Get the current console mode
-		//uint mode;
-
-		if (!GetConsoleMode(stdHandle, out uint mode))
+		if (!GetConsoleMode(hOutput, out uint dwMode))
 		{
 			Console.Error.WriteLine("Failed to get console mode");
 			return;
 		}
 
-		// Enable the virtual terminal processing mode
-		mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; //| DISABLE_NEWLINE_AUTO_RETURN;
-
-		if (!SetConsoleMode(stdHandle, mode))
+		switch (action)
 		{
-			Console.Error.WriteLine("Failed to set console mode");
-			return;
+			case VirtConsAction.Enable:
+				// Enable the virtual terminal processing mode
+				dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				break;
+
+			case VirtConsAction.Disable:
+				// Disable the virtual terminal processing mode
+				dwMode &= ~ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				break;
+
+			case VirtConsAction.Test:
+				Console.WriteLine(testString);
+				break;
+
+			case VirtConsAction.Sample:
+				SetConsoleTextAttribute(hOutput, 0x000C);
+				Console.Write("Rood");
+				SetConsoleTextAttribute(hOutput, 0x0007);
+				Console.Write("-");
+				SetConsoleTextAttribute(hOutput, 0x000A);
+				Console.Write("Groen");
+				SetConsoleTextAttribute(hOutput, 0x0007);
+				Console.Write("-");
+				SetConsoleTextAttribute(hOutput, 0x0009);
+				Console.Write("Blauw");
+				SetConsoleTextAttribute(hOutput, 0x0007);
+				Console.Write("\n");
+
+				break;
+
+			default:
+				Console.Error.WriteLine("Invalid action");
+				break;
 		}
+
+		// Set ConsoleMode
+		if (!SetConsoleMode(hOutput, dwMode))
+			Console.Error.WriteLine("Failed to set console mode");
 	}
+
+	// --------------------------
+	// Test SetVirtualConsoleMode
+	// --------------------------
+	[DllImport("kernel32.dll", SetLastError = true)]
+	public static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, CharacterAttributes wAttributes);
+
+	//[DllImport("kernel32.dll")]
+	//public static extern IntPtr GetStdHandle(int nStdHandle);
+
+	[DllImport("kernel32.dll")]
+	public static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput,
+		ref CONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo);
+
+	public static void TestSetVirtualConsoleMode()
+	{
+		// Enable = 0, Disable = 1, Test = 3, Sample = 4
+		Console.WriteLine("Enable");
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Enable);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Sample);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Test);
+
+		Console.WriteLine("Disable");
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Disable);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Sample);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Test);
+
+		Console.WriteLine("Enable");
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Enable);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Sample);
+		Ansi.SetVirtualConsoleMode(Ansi.VirtConsAction.Test);
+
+		// ---------------------------------------
+
+		const int STD_OUTPUT_HANDLE = -11;
+		IntPtr hOut;
+		hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+		CONSOLE_SCREEN_BUFFER_INFO ConsoleInfo = new CONSOLE_SCREEN_BUFFER_INFO();
+		GetConsoleScreenBufferInfo(hOut, ref ConsoleInfo);
+		CharacterAttributes originalAttributes = (CharacterAttributes)ConsoleInfo.wAttributes;
+
+		//write some text
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_BLUE);
+		Console.WriteLine("Blue text");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.BACKGROUND_RED);
+		Console.WriteLine("Red background");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.BACKGROUND_GREEN);
+		Console.WriteLine("Green background");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.BACKGROUND_GREEN | CharacterAttributes.BACKGROUND_RED);
+		Console.WriteLine("Yellow background");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_RED | CharacterAttributes.COMMON_LVB_UNDERSCORE);
+		Console.WriteLine("Red underlined text");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_RED | CharacterAttributes.FOREGROUND_BLUE);
+		Console.WriteLine("Purple text");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_RED
+								| CharacterAttributes.FOREGROUND_BLUE
+								| CharacterAttributes.FOREGROUND_INTENSITY);
+		Console.WriteLine("Purple text intense");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_GREEN
+								| CharacterAttributes.FOREGROUND_BLUE
+								| CharacterAttributes.COMMON_LVB_REVERSE_VIDEO);
+		Console.WriteLine("Aqua reversed text ");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.FOREGROUND_GREEN
+								| CharacterAttributes.FOREGROUND_BLUE
+								| CharacterAttributes.COMMON_LVB_REVERSE_VIDEO
+								| CharacterAttributes.FOREGROUND_INTENSITY);
+		Console.WriteLine("Aqua reversed intense text ");
+
+		SetConsoleTextAttribute(hOut, CharacterAttributes.COMMON_LVB_GRID_LVERTICAL
+								| CharacterAttributes.FOREGROUND_GREEN);
+		Console.WriteLine("What does this do");
+
+		SetConsoleTextAttribute(hOut, originalAttributes);
+		Console.WriteLine("Back to the shire");
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct CONSOLE_SCREEN_BUFFER_INFO
+	{
+		public COORD dwSize;
+		public COORD dwCursorPosition;
+		public int wAttributes;
+		public SMALL_RECT srWindow;
+		public COORD dwMaximumWindowSize;
+	}
+
+	// Standard structures used for interop with kernel32
+	[StructLayout(LayoutKind.Sequential)]
+	public struct COORD
+	{
+		public short x;
+		public short y;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct SMALL_RECT
+
+	{
+		public short Left;
+		public short Top;
+		public short Right;
+		public short Bottom;
+	}
+
+	// ---------------------------------------------------
 
 	public static void AnsiCodeTest()
 	{
+		Program.ResetConsole();
+
+		Console.WriteLine("Test");
+
+		// ----
+
+		// Column Title
+		//	m	40m	41m	42m	43m	44m	45m	46m	47m
+		Console.Write("\n\tm\t");
+
+		for (var b2 = 40; b2 < 48; b2++) Console.Write($"{b2}m\t");
+
+		// ----
+
+		Console.Write("\n");
+
+		// ----
+
+		// 1m row
+		Console.Write($"{Program.ConsBGC}{Program.ConsFGC}1m\t");
+		Console.Write($"{Ansi.Csi}1m gYw \t");
+
+		for (var b2 = 40; b2 < 48; b2++)
+			Console.Write($"{Ansi.Csi}1;{b2}m gYw \t");
+
+		// ----
+
+		Console.Write("\n");
+
+		// ----
+
+		for (var f2 = 30; f2 < 38; f2++)
+		{
+			// 0 Row - Row Title
+			Console.Write($"{Program.ConsBGC}{Program.ConsFGC}0;{f2}m\t");
+
+			// 0 Row - m Column
+			Console.Write($"{Program.ConsBGC}{Ansi.Csi}0;{f2}m gYw \t");
+
+			// 0 Row - 40..47 Column
+			for (var b2 = 40; b2 < 48; b2++)
+				Console.Write($"{Ansi.Csi}{b2}m{Ansi.Csi}{f2}m gYw \t");
+
+			Console.Write("\n");
+
+			// 1 Row - Row Title
+			Console.Write($"{Program.ConsBGC}{Program.ConsFGC}1;{f2}m\t");
+
+			// 1 Row - m Column
+			Console.Write($"{Program.ConsBGC}{Ansi.Csi}{f2}m gYw \t");
+
+			// 1 Row - Column - 40..47 Column
+			for (var b2 = 40; b2 < 48; b2++)
+				Console.Write($"{Ansi.Csi}1m{Ansi.Csi}{b2}m gYw \t");
+
+			Console.Write("\n");
+		}
+
+		Console.WriteLine($"{Program.ConsBGC}{Program.ConsFGC}");
+		Program.DrukToets();
+
+		// - - - - - - 
+
 		Console.WriteLine("\nDecorations:\n");
 
-        Console.WriteLine($"{BoldOn}Bold{BoldOf}, {UnderlineOn}Underline{UnderlineOf}, {ReverseOn}Reverse{ReverseOf}, {BlinkOn}Blink{BlinkOf} , {ItalicOn}Italic{ItalicOf}");	// ???
-        Console.WriteLine($"{BoldOn}Bold{FNORMAL}, {BoldOf}DubbelUnderline{UnderlineOf}, {UnderlineOn}Underline{UnderlineOf}, {ReverseOn}Reverse{ReverseOf}, {BlinkOn}Blink{BlinkOf} , {ItalicOn}Italic{ItalicOf}");	// ???
+		Console.WriteLine($"{BoldOn}Bold{BoldOf}, {UnderlineOn}Underline{UnderlineOf}, {ReverseOn}Reverse{ReverseOf}, {BlinkOn}Blink{BlinkOf} , {ItalicOn}Italic{ItalicOf}");   // ???
+		Console.WriteLine($"{BoldOn}Bold{FNORMAL}, {BoldOf}DubbelUnderline{UnderlineOf}, {UnderlineOn}Underline{UnderlineOf}, {ReverseOn}Reverse{ReverseOf}, {BlinkOn}Blink{BlinkOf} , {ItalicOn}Italic{ItalicOf}");    // ???
 
-        Console.WriteLine($"{Program.ConsBGC}{Program.ConsFGC}");
+		Console.WriteLine($"{Program.ConsBGC}{Program.ConsFGC}");
 		Program.DrukToets();
 
 		// - - - - - - 
@@ -2373,6 +2684,26 @@ public static class Ansi
 		Console.WriteLine($"{Program.ConsBGC}{Program.ConsFGC}");
 		for (var i = 0; i <= 255; i++) Console.Write($"{(char)i}");
 		Console.WriteLine($"{ESC}(B");
+
+		// - - - - - - 
+
+		//Program.ResetConsole();
+
+		//Console.WriteLine("Test");
+
+		//for (var a = 30; a < 38; a++)
+		//{
+		//    for (var b = 40; b < 48; b++)
+		//    {
+		//        Console.Write($"{Ansi.ESC}{b}m{Ansi.a}m");
+		//    }
+
+		//    Console.Write("\n");
+		//}
+
+
+
+
 
 		// - - - - - - 
 
